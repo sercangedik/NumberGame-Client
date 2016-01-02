@@ -31,11 +31,11 @@ public class MatchmakingImpl {
         return matchmakingService.startMatch("startMatch", socketName, playerId, playerNumber);
     }
 
-    public Call<Object> endGame(String socketName, String playerId) {
+    public Call<ResponseModel> endGame(String socketName, String playerId) {
         return matchmakingService.endMatch("endMatch", socketName, playerId);
     }
 
-    public Call<Object> cancelMatch(String socketName, String playerId) {
+    public Call<ResponseModel> cancelMatch(String socketName, String playerId) {
         return matchmakingService.cancelMatch("cancelMatch", socketName, playerId);
     }
 
