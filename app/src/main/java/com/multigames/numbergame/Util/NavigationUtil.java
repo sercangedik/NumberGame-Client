@@ -1,6 +1,8 @@
 package com.multigames.numbergame.Util;
 
 import android.app.Fragment;
+
+import com.multigames.numbergame.Fragments.EndScreen;
 import com.multigames.numbergame.Fragments.GameScreen;
 import com.multigames.numbergame.Fragments.HomeScreen;
 import com.multigames.numbergame.Model.GameDataModel;
@@ -13,6 +15,7 @@ import com.pusher.client.Pusher;
 public class NavigationUtil {
     public static final String HOME_SCREEN = "HOME_SCREEN";
     public static final String GAME_SCREEN = "GAME_SCREEN";
+    public static final String END_SCREEN = "END_SCREEN";
     public String currentScreen;
 
     private NumberGameActivity numberGameActivity;
@@ -38,6 +41,11 @@ public class NavigationUtil {
         setScreen(homeScreen, HOME_SCREEN);
     }
 
+    public void switchToEndScreen(String opponentNumber, boolean isWin){
+        EndScreen endScreen = new EndScreen(opponentNumber, isWin);
+        setScreen(endScreen, END_SCREEN);
+    }
+
     public void setScreen(Fragment fragment, String tag) {
         currentScreen = tag;
         numberGameActivity.getFragmentManager()
@@ -46,7 +54,7 @@ public class NavigationUtil {
                 .commitAllowingStateLoss();
     }
 
-    public String getCurrentScreen() {
+    public String getCurrentScreenName() {
         return currentScreen;
     }
 

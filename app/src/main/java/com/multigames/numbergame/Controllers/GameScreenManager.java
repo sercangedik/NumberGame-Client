@@ -54,7 +54,6 @@ public class GameScreenManager {
             }
             pusherChannel.trigger("client-startEvent", opponentResult.toString());
             isMineMove = false;
-            isConnectedOpponent = true;
         }
     }
 
@@ -90,13 +89,19 @@ public class GameScreenManager {
         return isMineMove;
     }
 
-    public void endGame() {
+    public Call<ResponseModel> endMatch(String deviceId) {
+        return matchmakingService.endGame(socketName, deviceId);
+    }
+
+    public void endGame(String myNumber, boolean isWin) {
         if (pusher == null || pusherChannel == null)
             return;
 
         if(pusherChannel.isSubscribed()){
             JSONObject opponentResult = new JSONObject();
             try {
+                opponentResult.put("opponentNumber", myNumber);
+                opponentResult.put("isWin", isWin);
                 opponentResult.put("endGame", "end");
             } catch (JSONException e) {
                 e.printStackTrace();
@@ -104,6 +109,8 @@ public class GameScreenManager {
             pusherChannel.trigger("client-startEvent", opponentResult.toString());
             isMineMove = false;
         }
+
+        unsubscribeChannel();
     }
 
     public void setIsMineMove(boolean isMineMove) {
@@ -152,4 +159,8 @@ public class GameScreenManager {
         return true;
     }
 
+    public Call<ResponseModel> cancelGame(String deviceId) {
+        unsubscribeChannel();
+        return matchmakingService.cancelMatch(socketName, deviceId);
+    }
 }

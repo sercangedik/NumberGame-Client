@@ -1,21 +1,16 @@
 package com.multigames.numbergame;
 
 import android.app.Activity;
-import android.os.CountDownTimer;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.util.Log;
 import android.widget.ProgressBar;
 
 import com.crashlytics.android.Crashlytics;
+import com.multigames.numbergame.Fragments.GameScreen;
 import com.multigames.numbergame.Network.MatchmakingImpl;
-import com.multigames.numbergame.Network.MatchmakingService;
 import com.multigames.numbergame.Util.LoadingWidgetManager;
 import com.multigames.numbergame.Util.NavigationUtil;
 import com.pusher.client.Pusher;
 import com.pusher.client.PusherOptions;
-import com.pusher.client.channel.Channel;
-import com.pusher.client.channel.SubscriptionEventListener;
 import com.pusher.client.connection.ConnectionEventListener;
 import com.pusher.client.connection.ConnectionState;
 import com.pusher.client.connection.ConnectionStateChange;
@@ -128,6 +123,14 @@ public class NumberGameActivity extends Activity implements ConnectionEventListe
 
     public void setPusherListener(PusherListener pusherListener) {
         this.pusherListener = pusherListener;
+    }
+
+    @Override
+    public void onBackPressed() {
+        if(getNavigationUtil().getCurrentScreenName().equals(NavigationUtil.GAME_SCREEN)){
+            ((GameScreen)getFragmentManager().findFragmentByTag(NavigationUtil.GAME_SCREEN)).showQuitDialogBox();
+        }
+
     }
 }
 

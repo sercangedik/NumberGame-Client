@@ -14,6 +14,7 @@ import com.multigames.numbergame.Network.MatchmakingImpl;
 import com.multigames.numbergame.NumberGameActivity;
 import com.multigames.numbergame.R;
 import com.multigames.numbergame.Util.LoadingWidgetManager;
+
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 import retrofit.Callback;
@@ -38,6 +39,7 @@ public class HomeScreen extends Fragment implements NumberGameActivity.PusherLis
         ButterKnife.bind(this, view);
         prepareProperties();
         checkAvailableMatch();
+        activity.setPusherListener(this);
         return view;
     }
 
