@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -11,7 +12,7 @@
 
         <RelativeLayout
             android:layout_width="match_parent"
-            android:layout_height="60dp"
+            android:layout_height="25dp"
             android:layout_gravity="center|top"
             android:gravity="center_horizontal"
             android:layout_weight="1"
@@ -23,7 +24,8 @@
                 android:text="Seçtiğiniz Sayı"
                 android:id="@+id/yourNumberText"
                 android:layout_alignParentTop="true"
-                android:layout_centerHorizontal="true" />
+                android:layout_centerHorizontal="true"
+                android:textColor="#ffffff" />
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -31,44 +33,49 @@
                 android:id="@+id/yourNumber"
                 android:layout_alignParentBottom="true"
                 android:layout_centerHorizontal="true"
-                android:textColor="#000" />
+                android:textColor="#fff"
+                android:textSize="20dp"
+                android:layout_below="@+id/yourNumberText" />
         </RelativeLayout>
 
         <RelativeLayout
             android:layout_width="match_parent"
-            android:layout_height="500dp"
-            android:layout_weight="8"
+            android:layout_height="100dp"
             android:layout_below="@+id/topLayout"
             android:layout_above="@+id/endLayout"
-            android:id="@+id/middleLayout">
+            android:id="@+id/middleLayout"
+            android:layout_weight="4">
 
             <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="120dp"
+                android:layout_height="90dp"
                 android:orientation="vertical"
+                android:focusable="true"
+                android:focusableInTouchMode="true"
                 android:id="@+id/linearLayout3">
 
 
                 <EditText
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:inputType="number"
                     android:ems="10"
                     android:id="@+id/myGuess"
                     android:layout_weight="1"
-                    android:textSize="60sp"
-                    android:textAlignment="center" />
+                    android:textSize="40sp"
+                    android:textAlignment="center"
+                    android:textColor="#ffffff"
+                    android:hint="Tahminim"
+                    android:textColorHint="#e3e3e3" />
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:textAppearance="?android:attr/textAppearanceMedium"
-                    android:text="Sure :"
+                <com.akexorcist.roundcornerprogressbar.RoundCornerProgressBar
                     android:id="@+id/timer"
+                    android:layout_width="match_parent"
+                    android:layout_height="25dp"
                     android:layout_alignBottom="@+id/yourNumberText"
                     android:layout_alignParentLeft="true"
                     android:layout_alignParentStart="true"
-                    android:layout_gravity="center" />
+                    android:layout_gravity="center"/>
+
             </LinearLayout>
 
             <ListView
@@ -77,6 +84,7 @@
                 android:id="@+id/yourMoveList"
                 android:layout_alignParentLeft="true"
                 android:layout_alignParentStart="true"
+                android:gravity="center"
                 android:layout_below="@+id/linearLayout3" />
 
         </RelativeLayout>
@@ -87,18 +95,13 @@
             android:layout_alignParentBottom="true"
             android:layout_alignParentLeft="true"
             android:layout_alignParentStart="true"
-            android:id="@+id/endLayout" >
+            android:id="@+id/endLayout"
+            android:layout_weight="5">
 
-            <Button
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="New Button"
-                android:id="@+id/buttonSend"
-                android:layout_alignParentTop="true"
-                android:layout_alignParentLeft="true"
-                android:layout_alignParentStart="true"
-                android:layout_alignParentRight="true"
-                android:layout_alignParentEnd="true" />
+            <include
+                layout="@layout/numpad"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent" />
         </RelativeLayout>
 
     </LinearLayout>

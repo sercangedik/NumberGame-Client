@@ -72,12 +72,18 @@ public class GameScreenManager {
         }
     }
 
-    public void destroy() {
-        if (pusher.getConnection().getState() != ConnectionState.DISCONNECTED
-                && pusher.getConnection().getState() != ConnectionState.DISCONNECTING) {
+    public void opponentConnected() {
+        if (pusher == null || pusherChannel == null)
+            return;
 
-            Log.d("A", "Disconnecting in preparation for destroy"); // No one is likely to see this
-            pusher.disconnect();
+        if(pusherChannel.isSubscribed()){
+            JSONObject opponentResult = new JSONObject();
+            try {
+                opponentResult.put("opponentConnected", "opponentConnected");
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+            pusherChannel.trigger("client-startEvent", opponentResult.toString());
         }
     }
 

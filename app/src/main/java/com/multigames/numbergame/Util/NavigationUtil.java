@@ -41,8 +41,8 @@ public class NavigationUtil {
         setScreen(homeScreen, HOME_SCREEN);
     }
 
-    public void switchToEndScreen(String opponentNumber, boolean isWin){
-        EndScreen endScreen = new EndScreen(opponentNumber, isWin);
+    public void switchToEndScreen(String opponentNumber, boolean isWin, String cause){
+        EndScreen endScreen = new EndScreen(opponentNumber, isWin, cause);
         setScreen(endScreen, END_SCREEN);
     }
 

@@ -20,6 +20,7 @@ import butterknife.OnClick;
 import retrofit.Callback;
 import retrofit.Response;
 import retrofit.Retrofit;
+import tyrantgit.explosionfield.ExplosionField;
 
 public class HomeScreen extends Fragment implements NumberGameActivity.PusherListener{
 
@@ -29,6 +30,7 @@ public class HomeScreen extends Fragment implements NumberGameActivity.PusherLis
     private HomeScreenManager manager;
     private LoadingWidgetManager loadingWidget;
     private NumberGameActivity activity;
+    private ExplosionField mExplosionField;
 
     public HomeScreen(MatchmakingImpl matchmakingService) {
         manager = new HomeScreenManager(matchmakingService);
@@ -38,8 +40,8 @@ public class HomeScreen extends Fragment implements NumberGameActivity.PusherLis
         View view = inflater.inflate(R.layout.home_screen, container, false);
         ButterKnife.bind(this, view);
         prepareProperties();
-        checkAvailableMatch();
         activity.setPusherListener(this);
+        mExplosionField = ExplosionField.attach2Window(getActivity());
         return view;
     }
 
@@ -64,20 +66,17 @@ public class HomeScreen extends Fragment implements NumberGameActivity.PusherLis
         } else if(!isAnyMatch){
             Toast.makeText(getActivity(), "Devam eden oyununuz kontrol ediliyor.", Toast.LENGTH_SHORT).show();
             return;
-        } else if(!isAnyMatchFlowStarted) {
-            anyAvailableMatch();
-            return;
         }
 
+        mExplosionField.explode(getActivity().findViewById(R.id.newGame));
         callNewGameRequest();
     }
 
     private void callNewGameRequest() {
-        loadingWidget.startWithTimeOut(10);
+        loadingWidget.start();
         manager.newGame(deviceId).enqueue(new Callback<ResponseGameModel>() {
             @Override
             public void onResponse(Response<ResponseGameModel> response, Retrofit retrofit) {
-                stopLoadingWidget();
                 activity.setSocketName(response.body().getGameModels().getSocketName());
                 activity.getNavigationUtil().switchToGameScreenWithNew(activity.getSocketName(), activity.getPusher(), activity.getMatchmakingService());
             }
@@ -104,7 +103,7 @@ public class HomeScreen extends Fragment implements NumberGameActivity.PusherLis
         getActivity().runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                loadingWidget.startWithTimeOut(10);
+                loadingWidget.start();
             }
         });
     }
@@ -116,10 +115,10 @@ public class HomeScreen extends Fragment implements NumberGameActivity.PusherLis
         manager.anyAvailableMatch(deviceId).enqueue(new Callback<ResponseGameModel>() {
             @Override
             public void onResponse(Response<ResponseGameModel> response, Retrofit retrofit) {
-                stopLoadingWidget();
                 if (response.body().getStat().equals("fail")) {
                     isAnyMatch = true;
                     Toast.makeText(getActivity(), "Devam eden oyununuz bulunmamaktadir.", Toast.LENGTH_SHORT).show();
+                    stopLoadingWidget();
                 } else {
                     activity.setSocketName(response.body().getGameModels().getSocketName());
                     ((NumberGameActivity) getActivity()).getNavigationUtil().switchToGameScreenWithResume(response.body().getGameModels(), activity.getPusher(), activity.getMatchmakingService());
@@ -128,6 +127,7 @@ public class HomeScreen extends Fragment implements NumberGameActivity.PusherLis
 
             @Override
             public void onFailure(Throwable t) {
+                isAnyMatch = true;
                 stopLoadingWidget();
                 Toast.makeText(getActivity(), t.toString(), Toast.LENGTH_SHORT).show();
                 Log.d("Sercan", "Failure : " + t);

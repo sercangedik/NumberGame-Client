@@ -8,4 +8,9 @@
         <item name="colorAccent">@color/colorAccent</item>
     </style>
 
+    <style name="ConverterButton" parent="Base.TextAppearance.AppCompat.Button">
+        <item name="android:background">@drawable/converter_button</item>
+        <item name="android:textSize">22sp</item>
+    </style>
+
 </resources>
