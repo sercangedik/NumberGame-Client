@@ -13,13 +13,15 @@ public class LoadingWidgetManager{
     private int timeOut = 10000;
     private CountDownTimer countDownTimer;
     private NumberGameActivity activity;
+    private boolean isActive;
 
     public LoadingWidgetManager(NumberGameActivity activity) {
         this.activity = activity;
-        this.progressBar = activity.getProgressBar();
+        this.progressBar = activity.getLoadingView();
     }
 
     public void start() {
+        isActive = true;
         countDownTimer = new CountDownTimer(timeOut, 1000) {
             @Override
             public void onTick(long millisUntilFinished) {
@@ -31,12 +33,14 @@ public class LoadingWidgetManager{
                 stop();
             }
         }.start();
+
         activity.getWindow().setFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE,
                 WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
         progressBar.setVisibility(View.VISIBLE);
     }
 
     public void stop() {
+        isActive = false;
         if(countDownTimer == null) {
             return;
         }
@@ -48,5 +52,9 @@ public class LoadingWidgetManager{
     public void startWithTimeOut(int timeOut) {
         this.timeOut = timeOut;
         start();
+    }
+
+    public boolean isActive() {
+        return isActive;
     }
 }

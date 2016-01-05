@@ -3,6 +3,7 @@ package com.multigames.numbergame;
 import android.app.Activity;
 import android.os.Bundle;
 import android.widget.ProgressBar;
+import android.widget.Toast;
 
 import com.crashlytics.android.Crashlytics;
 import com.multigames.numbergame.Fragments.GameScreen;
@@ -23,7 +24,7 @@ import io.fabric.sdk.android.Fabric;
 
 public class NumberGameActivity extends Activity implements ConnectionEventListener {
 
-    @Bind(R.id.loading_widget) ProgressBar progressBar;
+    @Bind(R.id.loading_widget) ProgressBar loadingView;
 
     private NavigationUtil navigationUtil;
     private MatchmakingImpl matchmakingService;
@@ -52,8 +53,8 @@ public class NumberGameActivity extends Activity implements ConnectionEventListe
         navigationUtil.switchToHomeScreen(matchmakingService);
     }
 
-    public ProgressBar getProgressBar() {
-        return progressBar;
+    public ProgressBar getLoadingView() {
+        return loadingView;
     }
 
     public int getFragmentContainerId() {
@@ -72,6 +73,15 @@ public class NumberGameActivity extends Activity implements ConnectionEventListe
         return navigationUtil.getLoadingWidgetManager();
     }
 
+    private void showToastMessage(final String message) {
+        this.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                Toast.makeText(getApplicationContext(), message, Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
     @Override
     public void onConnectionStateChange(ConnectionStateChange connectionStateChange) {
         final ConnectionState newState = connectionStateChange.getCurrentState();
@@ -84,6 +94,11 @@ public class NumberGameActivity extends Activity implements ConnectionEventListe
         }
 
         if (newState == ConnectionState.DISCONNECTED) {
+            if(getNavigationUtil().getCurrentScreenName().equals(NavigationUtil.GAME_SCREEN)){
+                showToastMessage("Baglanti sorunu yasadiniz. Lutfen bekleyiniz. Otomatik olarak oyuna yonlendirileceksiniz.");
+                navigationUtil.switchToHomeScreen(matchmakingService);
+            }
+
             isConnected = false;
             pusher.connect(this);
         }
@@ -127,7 +142,7 @@ public class NumberGameActivity extends Activity implements ConnectionEventListe
 
     @Override
     public void onBackPressed() {
-        if(getNavigationUtil().getCurrentScreenName().equals(NavigationUtil.GAME_SCREEN)){
+        if(getNavigationUtil().getCurrentScreenName().equals(NavigationUtil.GAME_SCREEN) && !getLoadingWidget().isActive()){
             ((GameScreen)getFragmentManager().findFragmentByTag(NavigationUtil.GAME_SCREEN)).showQuitDialogBox();
         }
 

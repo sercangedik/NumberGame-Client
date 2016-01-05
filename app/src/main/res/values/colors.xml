@@ -1,6 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <color name="colorPrimary">#3F51B5</color>
+    <color name="colorDark">#454344</color>
     <color name="colorPrimaryDark">#303F9F</color>
     <color name="colorAccent">#FF4081</color>
+    <color name="chromeBlue">#0266C8</color>
+    <color name="chromeRed">#F90101</color>
+    <color name="chromeYellow">#F2B50F</color>
+    <color name="chromeGreen">#00933B</color>
+    <color name="newGameButtonHover">#913435</color>
+    <color name="newGameButton">#c55052</color>
+    <color name="progressBackground">#3C3A3B</color>
+    <color name="progressMain">#99CC00</color>
 </resources>

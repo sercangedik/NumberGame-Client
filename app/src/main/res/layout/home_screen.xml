@@ -4,11 +4,27 @@
     android:layout_height="match_parent">
 
     <Button
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="New Game"
+        android:layout_width="150dp"
+        android:layout_height="60dp"
+        android:text="Yeni Oyun"
+        android:textSize="15sp"
+        android:background="@drawable/rounded_button"
         android:id="@+id/newGame"
-        android:layout_centerVertical="true"
+        android:layout_below="@+id/imageView"
+        android:layout_centerHorizontal="true"
+        android:textColor="#d6d6d6" />
+
+    <ImageView
+        android:layout_width="350dp"
+        android:layout_height="300dp"
+        android:id="@+id/imageView"
+        android:background="@drawable/my_logo"
+        android:scaleType="centerCrop"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentRight="false"
+        android:layout_alignParentEnd="false"
+        android:layout_alignParentLeft="false"
+        android:layout_alignParentStart="false"
         android:layout_centerHorizontal="true" />
 
 </RelativeLayout>
