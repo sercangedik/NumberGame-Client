@@ -36,7 +36,6 @@ import java.util.ArrayList;
 import java.util.List;
 import butterknife.Bind;
 import butterknife.ButterKnife;
-import butterknife.OnClick;
 import retrofit.Call;
 import retrofit.Callback;
 import retrofit.Response;
@@ -45,10 +44,12 @@ import retrofit.Retrofit;
 
 public class GameScreen extends Fragment implements PrivateChannelEventListener {
 
-    @Bind(R.id.yourNumber)  TextView yourNumber;
-    @Bind(R.id.timer)       RoundCornerProgressBar timerView;
-    @Bind(R.id.myGuess)     EditText myGuessEditText;
-    @Bind(R.id.numPad)      View     numPad;
+    public static final String BLANK_GUESS = "xxxx";
+    @Bind(R.id.yourNumber)      TextView yourNumber;
+    @Bind(R.id.timer)           RoundCornerProgressBar timerView;
+    @Bind(R.id.myGuess)         EditText myGuessEditText;
+    @Bind(R.id.numPad)          View     numPad;
+    @Bind(R.id.turnDetailText)  TextView turnDetailText;
 
     private ListView moveListView;
     private List<String> moveList;
@@ -80,6 +81,17 @@ public class GameScreen extends Fragment implements PrivateChannelEventListener 
         manager = new GameScreenManager(matchmaking, socketName, pusher);
         this.gameModel = null;
         isResumingGame = false;
+    }
+
+    public void setTurnDetail(final boolean isMyTurn) {
+        if(getActivity() != null) {
+            getActivity().runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    turnDetailText.setText(isMyTurn ? "Sira Sizde" : "Sira Karsida");
+                }
+            });
+        }
     }
 
     public void startTimer(final long countDown) {
@@ -122,7 +134,7 @@ public class GameScreen extends Fragment implements PrivateChannelEventListener 
                                     }
                                 });
                             } else {
-                                addMove("****");
+                                addMove(BLANK_GUESS);
                             }
                         }
                     }
@@ -159,7 +171,7 @@ public class GameScreen extends Fragment implements PrivateChannelEventListener 
         stopLoadingWidget();
         prepareQuitDialogBox();
         timerView.setMax(60);
-        timerView.setRadius(1);
+        timerView.setRadius(5);
         timerView.setProgressBackgroundColor(getResources().getColor(R.color.progressBackground));
         timerView.setProgressColor(getResources().getColor(R.color.progressMain));
         List<View> touchables = numPad.getTouchables();
@@ -257,6 +269,8 @@ public class GameScreen extends Fragment implements PrivateChannelEventListener 
             createAndShowNumber();
             initializeDialogButton();
         }
+
+        myGuessEditText.setEnabled(false);
     }
 
     private void updateListWithMoves() {
@@ -266,11 +280,7 @@ public class GameScreen extends Fragment implements PrivateChannelEventListener 
     }
 
     private void prepareWhoIsMove() {
-        if(deviceId.equals(gameModel.getGameDataModel().getCurrentMoveId())){
-            manager.setIsMineMove(true);
-        } else {
-            manager.setIsMineMove(false);
-        }
+        setMove(deviceId.equals(gameModel.getGameDataModel().getCurrentMoveId()));
     }
 
     private void prepareTime() {
@@ -280,7 +290,7 @@ public class GameScreen extends Fragment implements PrivateChannelEventListener 
         }
         long countDown = Long.parseLong(moveEndTime) - (System.currentTimeMillis() / 1000);
         if(countDown < 0) {
-            addMove("****");
+            addMove(BLANK_GUESS);
         } else {
             startTimer(countDown);
         }
@@ -387,16 +397,18 @@ public class GameScreen extends Fragment implements PrivateChannelEventListener 
 
     private void addMove(final String myGuess) {
         startLoadingWidget();
+        manager.sendMyGuessToOpponent(myGuess);
         manager.addMove(myGuess, deviceId).enqueue(new Callback<ResponseModel>() {
             @Override
             public void onResponse(Response<ResponseModel> response, Retrofit retrofit) {
+
                 stopLoadingWidget();
                 if (response.body().getData().split(",")[0].equals("finished")) {
                     manager.endGame(myNumber, false);
                     cancelTimer();
                     activity.getNavigationUtil().switchToEndScreen(response.body().getData().split(",")[1], true, "Sayiyi Bildiniz !");
                 } else {
-                    manager.setIsMineMove(false);
+                    setMove(false);
                     manager.nextMove();
                     String[] myMoveResult = response.body().getData().split(",");
                     String myMove = "Tahmin : " + myGuess + " Cevap : +" + myMoveResult[0] + " ______ " + " -" + myMoveResult[1];
@@ -407,13 +419,17 @@ public class GameScreen extends Fragment implements PrivateChannelEventListener 
             @Override
             public void onFailure(Throwable t) {
                 stopLoadingWidget();
-                manager.setIsMineMove(true);
+                setMove(true);
                 showToastMessage("Islem gerceklesmedi. Lutfen tekrar deneyiniz.");
             }
         });
         startTimer(NEXT_MOVE_TIME);
     }
 
+    private void setMove(boolean isMyMove) {
+        setTurnDetail(isMyMove);
+        manager.setIsMineMove(isMyMove);
+    }
 
     @Override
     public void onAuthenticationFailure(String s, Exception e) {
@@ -436,6 +452,7 @@ public class GameScreen extends Fragment implements PrivateChannelEventListener 
                     } else if (response.body().getData().equals("Start")) {
                         startTimer(NEXT_MOVE_TIME);
                         manager.setIsConnectedOpponent(true);
+                        setMove(false);
                         showToastMessage("Oyun basladi. Sira karsi oyuncuda.");
                         manager.startGame();
                     } else if (response.body().getData().equals("Ok")) {
@@ -487,19 +504,21 @@ public class GameScreen extends Fragment implements PrivateChannelEventListener 
 
             if(event.has("startGame") && event.getString("startGame").equals("start")){
                 manager.setIsConnectedOpponent(true);
-                manager.setIsMineMove(true);
+                setMove(true);
                 showToastMessage("Sira sizde. Simdi baslayabilirsiniz.");
                 startTimer(MY_MOVE_TIME);
             } else if(event.has("nextMove") && event.getString("nextMove").equals("move")){
                 startTimer(MY_MOVE_TIME);
                 showToastMessage("Sira sizde. Lutfen hamlenizi yapin.");
-                manager.setIsMineMove(true);
+                setMove(true);
             } else if(event.has("endGame") && event.getString("endGame").equals("end")){
                 manager.unsubscribeChannel();
                 cancelTimer();
                 activity.getNavigationUtil().switchToEndScreen(event.getString("opponentNumber"), event.getBoolean("isWin"), null);
             } else if(event.has("opponentConnected")) {
                 showToastMessage("Rakibiniz baglandi.");
+            } else if(event.has("guessNumber")) {
+                showToastMessage("Rakibinizin hamlesi : " + event.getString("guessNumber"));
             }
         } catch (JSONException e) {
             e.printStackTrace();
@@ -507,18 +526,20 @@ public class GameScreen extends Fragment implements PrivateChannelEventListener 
     }
 
     public void updateList(String myMove) {
-        moveList.add(myMove);
-        getActivity().runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                moveListView.invalidateViews();
-            }
-        });
+        if(moveList != null) {
+            moveList.add(myMove);
+            getActivity().runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    moveListView.invalidateViews();
+                }
+            });
+        }
     }
 
     public void updateList(String[] myMoves, String[] myMovesResults) {
         for (int i = 1; i < myMoves.length; i++) {
-            String myMove = "Tahmin : " + myMoves[i] + " Cevap : +" + myMovesResults[(i*2) - 1] + "______" + " -" + myMovesResults[i*2];
+            String myMove = "Tahmin : " + myMoves[i] + " Cevap : +" + myMovesResults[(i*2) - 1] + " ______ " + " -" + myMovesResults[i*2];
             moveList.add(myMove);
         }
 

@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:orientation="vertical" android:layout_width="match_parent"
     android:layout_height="match_parent">
 
@@ -8,6 +9,8 @@
         android:layout_height="60dp"
         android:text="Yeni Oyun"
         android:textSize="15sp"
+        fontPath="fonts/Cronos.ttf"
+        tools:ignore="MissingPrefix"
         android:background="@drawable/rounded_button"
         android:id="@+id/newGame"
         android:layout_below="@+id/imageView"
@@ -21,10 +24,12 @@
         android:background="@drawable/my_logo"
         android:scaleType="centerCrop"
         android:layout_alignParentTop="true"
+        fontPath="fonts/Cronos.ttf"
         android:layout_alignParentRight="false"
         android:layout_alignParentEnd="false"
         android:layout_alignParentLeft="false"
         android:layout_alignParentStart="false"
-        android:layout_centerHorizontal="true" />
+        android:layout_centerHorizontal="true"
+        tools:ignore="MissingPrefix" />
 
 </RelativeLayout>

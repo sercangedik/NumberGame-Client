@@ -44,32 +44,27 @@ public class EndScreen extends Fragment{
 
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
-        if(!isWin) {
-            startDustAnimation();
-        } else {
-            startConfettiAnimation();
+        if(isWin) {
+            //startConfettiAnimation();
         }
         super.onActivityCreated(savedInstanceState);
     }
 
-    private void startDustAnimation() {
-        new ParticleSystem(getActivity(), 4, R.drawable.dust, 5000)
-                .setSpeedByComponentsRange(-0.025f, 0.025f, -0.06f, -0.08f)
-                .setAcceleration(0.00001f, 30)
-                .setInitialRotationRange(0, 360)
-                .addModifier(new AlphaModifier(255, 0, 1000, 3000))
-                .addModifier(new ScaleModifier(0.5f, 2f, 0, 1000))
-                .oneShot(getActivity().findViewById(R.id.resultText), 4);
-    }
 
     private void startConfettiAnimation() {
-        ParticleSystem ps = new ParticleSystem(getActivity(), 100, R.drawable.star, 5000);
+        ParticleSystem ps = new ParticleSystem(getActivity(), 100, R.drawable.confeti2, 800);
         ps.setScaleRange(0.7f, 1.3f);
-        ps.setSpeedModuleAndAngleRange(0.07f, 0.16f, 0, 180);
+        ps.setSpeedRange(0.1f, 0.25f);
         ps.setRotationSpeedRange(90, 180);
-        ps.setAcceleration(0.00013f, 90);
         ps.setFadeOut(200, new AccelerateInterpolator());
-        ps.emit(getActivity().findViewById(R.id.resultText), 100, 2000);
+        ps.oneShot(resultTextView, 70);
+
+        ParticleSystem ps2 = new ParticleSystem(getActivity(), 100, R.drawable.confeti3, 800);
+        ps2.setScaleRange(0.7f, 1.3f);
+        ps2.setSpeedRange(0.1f, 0.25f);
+        ps.setRotationSpeedRange(90, 180);
+        ps2.setFadeOut(200, new AccelerateInterpolator());
+        ps2.oneShot(resultTextView, 70);
     }
 
 

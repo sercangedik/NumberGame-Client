@@ -1,6 +1,7 @@
 package com.multigames.numbergame;
 
 import android.app.Activity;
+import android.content.Context;
 import android.os.Bundle;
 import android.widget.ProgressBar;
 import android.widget.Toast;
@@ -21,6 +22,8 @@ import com.squareup.leakcanary.LeakCanary;
 import butterknife.Bind;
 import butterknife.ButterKnife;
 import io.fabric.sdk.android.Fabric;
+import uk.co.chrisjenx.calligraphy.CalligraphyConfig;
+import uk.co.chrisjenx.calligraphy.CalligraphyContextWrapper;
 
 public class NumberGameActivity extends Activity implements ConnectionEventListener {
 
@@ -43,7 +46,13 @@ public class NumberGameActivity extends Activity implements ConnectionEventListe
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         LeakCanary.install(getApplication());
-        Fabric.with(this, new Crashlytics());
+
+        CalligraphyConfig.initDefault(new CalligraphyConfig.Builder()
+                .setDefaultFontPath("fonts/Cronosd.ttf")
+                .setFontAttrId(R.attr.fontPath)
+                .build());
+
+                Fabric.with(this, new Crashlytics());
         setContentView(R.layout.activity_main);
         ButterKnife.bind(this);
 
@@ -51,6 +60,11 @@ public class NumberGameActivity extends Activity implements ConnectionEventListe
         matchmakingService = new MatchmakingImpl();
         navigationUtil = new NavigationUtil(this);
         navigationUtil.switchToHomeScreen(matchmakingService);
+    }
+
+    @Override
+    protected void attachBaseContext(Context newBase) {
+        super.attachBaseContext(CalligraphyContextWrapper.wrap(newBase));
     }
 
     public ProgressBar getLoadingView() {
