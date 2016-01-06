@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    xmlns:app="http://schemas.android.com/apk/res-auto">
+    android:layout_height="match_parent">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -15,17 +15,22 @@
             android:layout_height="25dp"
             android:layout_gravity="center|top"
             android:gravity="center_horizontal"
+            android:background="@drawable/my_guess_background"
             android:layout_weight="1"
-            android:id="@+id/topLayout">
+            android:id="@+id/topLayout"
+            android:layout_margin="5dp">
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textAppearance="?android:attr/textAppearanceLarge"
                 android:text="Seçtiğiniz Sayı"
+                fontPath="fonts/Cronos.ttf"
+                tools:ignore="MissingPrefix"
                 android:id="@+id/yourNumberText"
                 android:layout_alignParentTop="true"
                 android:layout_centerHorizontal="true"
-                android:textColor="#ffffff" />
+                android:textColor="#ffffff"
+                 />
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -35,6 +40,8 @@
                 android:layout_centerHorizontal="true"
                 android:textColor="#fff"
                 android:textSize="20dp"
+                fontPath="fonts/Cronos.ttf"
+                tools:ignore="MissingPrefix"
                 android:layout_below="@+id/yourNumberText" />
         </RelativeLayout>
 
@@ -46,7 +53,7 @@
             android:id="@+id/middleLayout"
             android:layout_weight="4">
 
-            <LinearLayout
+            <RelativeLayout
                 android:layout_width="match_parent"
                 android:layout_height="90dp"
                 android:orientation="vertical"
@@ -61,31 +68,67 @@
                     android:ems="10"
                     android:id="@+id/myGuess"
                     android:layout_weight="1"
+                    fontPath="fonts/Cronos.ttf"
+                    tools:ignore="MissingPrefix"
                     android:textSize="40sp"
                     android:textAlignment="center"
                     android:textColor="#ffffff"
                     android:hint="Tahminim"
-                    android:textColorHint="#e3e3e3" />
+                    android:textColorHint="#e3e3e3"
+                    android:focusableInTouchMode="false"
+                    android:focusable="false"
+                    android:enabled="false"
+                    android:clickable="false" />
 
                 <com.akexorcist.roundcornerprogressbar.RoundCornerProgressBar
                     android:id="@+id/timer"
                     android:layout_width="match_parent"
                     android:layout_height="25dp"
-                    android:layout_alignBottom="@+id/yourNumberText"
+                    android:layout_gravity="center"
+                    android:layout_alignParentBottom="true"
                     android:layout_alignParentLeft="true"
                     android:layout_alignParentStart="true"
-                    android:layout_gravity="center"/>
+                    android:layout_marginLeft="5dp"
+                    android:layout_marginRight="5dp" />
 
-            </LinearLayout>
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textAppearance="?android:attr/textAppearanceMedium"
+                    android:id="@+id/turnDetailText"
+                    android:layout_weight="1"
+                    fontPath="fonts/Cronos.ttf"
+                    tools:ignore="MissingPrefix"
+                    android:layout_alignTop="@+id/timer"
+                    android:layout_alignParentBottom="true"
+                    android:layout_alignParentRight="true"
+                    android:layout_alignParentEnd="true"
+                    android:layout_alignParentLeft="true"
+                    android:layout_alignParentStart="true"
+                    android:gravity="center"
+                    android:textColor="#fff" />
 
-            <ListView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:id="@+id/yourMoveList"
-                android:layout_alignParentLeft="true"
-                android:layout_alignParentStart="true"
-                android:gravity="center"
-                android:layout_below="@+id/linearLayout3" />
+            </RelativeLayout>
+
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_below="@+id/linearLayout3"
+                android:background="@drawable/list_background"
+                android:layout_margin="5dp">
+
+                <ListView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/yourMoveList"
+                    android:layout_alignParentLeft="true"
+                    android:layout_alignParentStart="true"
+                    android:gravity="center"
+                    android:layout_margin="2dp" />
+
+            </RelativeLayout>
+
+
 
         </RelativeLayout>
 
@@ -101,7 +144,10 @@
             <include
                 layout="@layout/numpad"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent" />
+                android:layout_height="match_parent"
+                android:layout_marginRight="5dp"
+                android:layout_marginLeft="5dp"
+                android:layout_marginBottom="5dp" />
         </RelativeLayout>
 
     </LinearLayout>

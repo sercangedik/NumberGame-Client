@@ -119,8 +119,24 @@ public class GameScreenManager {
         unsubscribeChannel();
     }
 
+    public void sendMyGuessToOpponent(String myGuess) {
+        if (pusher == null || pusherChannel == null)
+            return;
+
+        if(pusherChannel.isSubscribed()){
+            JSONObject myGuessJson = new JSONObject();
+            try {
+                myGuessJson.put("guessNumber", myGuess);
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+            pusherChannel.trigger("client-startEvent", myGuessJson.toString());
+        }
+    }
+
     public void setIsMineMove(boolean isMineMove) {
         this.isMineMove = isMineMove;
+
     }
 
     public void nextMove(){
