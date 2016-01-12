@@ -9,6 +9,10 @@ import com.pusher.client.channel.PrivateChannelEventListener;
 import com.pusher.client.connection.ConnectionState;
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import java.util.ArrayList;
+import java.util.Random;
+
 import retrofit.Call;
 
 
@@ -20,6 +24,9 @@ public class GameScreenManager {
     private boolean isConnectedOpponent;
     private boolean isMineMove;
     private MatchmakingImpl matchmakingService;
+    private String botNumber = new String();
+    private int botMoveCount = 0;
+    private ArrayList<String> botMoves = new ArrayList<>();
 
     public GameScreenManager(MatchmakingImpl matchmakingService, String socketName, Pusher pusher) {
         this.matchmakingService = matchmakingService;
@@ -184,5 +191,76 @@ public class GameScreenManager {
     public Call<ResponseModel> cancelGame(String deviceId) {
         unsubscribeChannel();
         return matchmakingService.cancelMatch(socketName, deviceId);
+    }
+
+    public void generateBotNumber(String myNumber){
+        Random rand = new Random();
+        int i = 0;
+        int j = 0;
+
+        while(i != 4){
+            String tempValue = String.valueOf(rand.nextInt(10));
+            if(!botNumber.contains(tempValue)) {
+                botNumber += tempValue;
+                i++;
+            }
+        }
+
+        i = 0;
+        botMoveCount = rand.nextInt(8) + 8;
+        String botMoveTemp = new String();
+
+        while(i != botMoveCount){
+            String tempValue = String.valueOf(rand.nextInt(10));
+
+            if(!botMoveTemp.contains(tempValue)) {
+                botMoveTemp += tempValue;
+                j++;
+            }
+
+            if(j == 4) {
+                botMoves.add(botMoveTemp);
+                botMoveTemp = new String();
+                j = 0;
+                i++;
+            }
+        }
+
+        botMoves.add(myNumber);
+    }
+
+    public ArrayList<String> getBotMoves() {
+        return botMoves;
+    }
+
+    public String getBotNumber() {
+        return botNumber;
+    }
+
+    public String getAnswerForBot(final String myGuess) {
+        String myAnswer = new String();
+        int plus = 0;
+        int minus = 0;
+
+        String[] myGuessArray = myGuess.split("(?!^)");
+        String[] botNumberArray = botNumber.split("(?!^)");
+
+        for (int i = 0; i < myGuessArray.length; i++) {
+            for (int j = 0; j < myGuessArray.length; j++) {
+                if(myGuessArray[i].equals(botNumberArray[j])){
+                    if(i == j) {
+                        plus++;
+                    } else {
+                        minus++;
+                    }
+                }
+            }
+        }
+        myAnswer += String.valueOf(plus) + "," + String.valueOf(minus);
+        return myAnswer;
+    }
+
+    public Call addBotGame(String deviceId, String myNumber) {
+        return matchmakingService.addBotGame(deviceId, myNumber);
     }
 }

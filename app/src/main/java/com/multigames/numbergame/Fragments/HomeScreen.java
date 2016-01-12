@@ -3,10 +3,10 @@ package com.multigames.numbergame.Fragments;
 import android.app.Fragment;
 import android.os.Bundle;
 import android.provider.Settings;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.Toast;
 import com.multigames.numbergame.Controllers.HomeScreenManager;
 import com.multigames.numbergame.Model.ResponseGameModel;
@@ -15,6 +15,7 @@ import com.multigames.numbergame.NumberGameActivity;
 import com.multigames.numbergame.R;
 import com.multigames.numbergame.Util.LoadingWidgetManager;
 
+import butterknife.Bind;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 import retrofit.Callback;
@@ -24,6 +25,7 @@ import tyrantgit.explosionfield.ExplosionField;
 
 public class HomeScreen extends Fragment implements NumberGameActivity.PusherListener{
 
+    @Bind(R.id.newGame) Button newGame;
     private String deviceId;
     private boolean isAnyMatch = true;
     private boolean isAnyMatchFlowStarted = false;
@@ -42,6 +44,7 @@ public class HomeScreen extends Fragment implements NumberGameActivity.PusherLis
         prepareProperties();
         activity.setPusherListener(this);
         mExplosionField = ExplosionField.attach2Window(getActivity());
+        newGame.setText(getResources().getString(R.string.new_game));
         return view;
     }
 
@@ -61,10 +64,10 @@ public class HomeScreen extends Fragment implements NumberGameActivity.PusherLis
     @OnClick(R.id.newGame)
     void newGame(){
         if(!activity.isConnected()) {
-            Toast.makeText(getActivity(), "Henuz baglantiniz gerceklesmedi.", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getActivity(), getString(R.string.connection_not_yet), Toast.LENGTH_SHORT).show();
             return;
         } else if(!isAnyMatch){
-            Toast.makeText(getActivity(), "Devam eden oyununuz kontrol ediliyor.", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getActivity(), getString(R.string.game_check), Toast.LENGTH_SHORT).show();
             return;
         }
 
@@ -85,7 +88,6 @@ public class HomeScreen extends Fragment implements NumberGameActivity.PusherLis
             public void onFailure(Throwable t) {
                 stopLoadingWidget();
                 Toast.makeText(getActivity(), t.toString(), Toast.LENGTH_SHORT).show();
-                Log.d("Sercan", "Failure : " + t);
             }
         });
     }
@@ -117,7 +119,7 @@ public class HomeScreen extends Fragment implements NumberGameActivity.PusherLis
             public void onResponse(Response<ResponseGameModel> response, Retrofit retrofit) {
                 if (response.body().getStat().equals("fail")) {
                     isAnyMatch = true;
-                    Toast.makeText(getActivity(), "Devam eden oyununuz bulunmamaktadir.", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getActivity(), getString(R.string.game_check_fail), Toast.LENGTH_SHORT).show();
                     stopLoadingWidget();
                 } else {
                     activity.setSocketName(response.body().getGameModels().getSocketName());
@@ -130,7 +132,6 @@ public class HomeScreen extends Fragment implements NumberGameActivity.PusherLis
                 isAnyMatch = true;
                 stopLoadingWidget();
                 Toast.makeText(getActivity(), t.toString(), Toast.LENGTH_SHORT).show();
-                Log.d("Sercan", "Failure : " + t);
             }
         });
     }

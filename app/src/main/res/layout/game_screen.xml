@@ -23,7 +23,6 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textAppearance="?android:attr/textAppearanceLarge"
-                android:text="Seçtiğiniz Sayı"
                 fontPath="fonts/Cronos.ttf"
                 tools:ignore="MissingPrefix"
                 android:id="@+id/yourNumberText"
@@ -73,12 +72,13 @@
                     android:textSize="40sp"
                     android:textAlignment="center"
                     android:textColor="#ffffff"
-                    android:hint="Tahminim"
                     android:textColorHint="#e3e3e3"
                     android:focusableInTouchMode="false"
                     android:focusable="false"
                     android:enabled="false"
-                    android:clickable="false" />
+                    android:clickable="false"
+                    android:gravity="center"
+                    android:layout_centerInParent="true" />
 
                 <com.akexorcist.roundcornerprogressbar.RoundCornerProgressBar
                     android:id="@+id/timer"

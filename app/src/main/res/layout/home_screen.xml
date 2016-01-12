@@ -7,7 +7,6 @@
     <Button
         android:layout_width="150dp"
         android:layout_height="60dp"
-        android:text="Yeni Oyun"
         android:textSize="15sp"
         fontPath="fonts/Cronos.ttf"
         tools:ignore="MissingPrefix"

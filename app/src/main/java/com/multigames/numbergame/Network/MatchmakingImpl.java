@@ -19,7 +19,7 @@ public class MatchmakingImpl {
         httpClient.interceptors().add(logging);
 
         Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl("http://www.sercangedik.com/MultiplayerGamesBackend/")
+                .baseUrl("http://46.101.136.113/MultiplayerGamesBackend/")
                 .client(httpClient)
                 .addConverterFactory(GsonConverterFactory.create())
                 .build();
@@ -49,5 +49,9 @@ public class MatchmakingImpl {
 
     public Call<ResponseGameModel> newGame(String deviceId) {
         return matchmakingService.newGame("newMatch", deviceId);
+    }
+
+    public Call<ResponseGameModel> addBotGame(String deviceId, String myNumber) {
+        return matchmakingService.addBotGame("addBotGame", deviceId, myNumber);
     }
 }

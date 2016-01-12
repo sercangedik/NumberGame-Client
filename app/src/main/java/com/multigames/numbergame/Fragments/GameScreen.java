@@ -50,6 +50,7 @@ public class GameScreen extends Fragment implements PrivateChannelEventListener 
     @Bind(R.id.myGuess)         EditText myGuessEditText;
     @Bind(R.id.numPad)          View     numPad;
     @Bind(R.id.turnDetailText)  TextView turnDetailText;
+    @Bind(R.id.yourNumberText)  TextView yourNumberText;
 
     private ListView moveListView;
     private List<String> moveList;
@@ -60,12 +61,16 @@ public class GameScreen extends Fragment implements PrivateChannelEventListener 
     private final GameModel gameModel;
     private boolean isResumingGame;
     private CountDownTimer timer;
+    private CountDownTimer timerForBot;
     private NumberGameActivity activity;
     private boolean isConnectionCompleted;
     private DialogInterface.OnClickListener dialogQuitListener;
+    private boolean isBotGame;
 
     private final long NEXT_MOVE_TIME = 65000;
     private final long MY_MOVE_TIME = 60000;
+    private final long BOT_MOVE_TIME = 5000;
+    private final long BOT_JOIN_TIME = 5000;
 
     public GameScreen(GameModel gameModel, Pusher pusher, MatchmakingImpl matchmaking) {
         this.gameModel = gameModel;
@@ -88,10 +93,45 @@ public class GameScreen extends Fragment implements PrivateChannelEventListener 
             getActivity().runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    turnDetailText.setText(isMyTurn ? "Sira Sizde" : "Sira Karsida");
+                    turnDetailText.setText(isMyTurn ? getString(R.string.your_move) : getString(R.string.opponent_move));
                 }
             });
         }
+    }
+
+    public void startTimerForBot(final long botTime) {
+        cancelTimerForBot();
+        getActivity().runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                timerForBot = new CountDownTimer(botTime, 1000) {
+                    @Override
+                    public void onTick(long millisUntilFinished) {
+                        if(isBotGame) {
+                            long remainingTime = (millisUntilFinished / 1000);
+                            timerView.setProgress(54 + remainingTime);
+                        }
+                    }
+
+                    @Override
+                    public void onFinish() {
+                        if(!isBotGame) {
+                            prepareGameForBot();
+                            manager.unsubscribeChannel();
+                        } else {
+                            if(manager.getBotMoves().size() == moveList.size()) {
+                                activity.getNavigationUtil().switchToEndScreen(manager.getBotNumber(), false, null);
+                            } else {
+                                showToastMessage(getString(R.string.opponent_guess) + manager.getBotMoves().get(moveList.size() - 1));
+                                startTimer(MY_MOVE_TIME);
+                                showToastMessage(getString(R.string.your_move));
+                                setMove(true);
+                            }
+                        }
+                    }
+                }.start();
+            }
+        });
     }
 
     public void startTimer(final long countDown) {
@@ -124,8 +164,7 @@ public class GameScreen extends Fragment implements PrivateChannelEventListener 
                                     @Override
                                     public void onResponse(Response<ResponseModel> response, Retrofit retrofit) {
                                         manager.endGame(myNumber, false);
-                                        cancelTimer();
-                                        activity.getNavigationUtil().switchToEndScreen(response.body().getData(), true, "Rakibiniz zamaninda hamlesini yapmadi. Oyunuz kazandiniz.");
+                                        activity.getNavigationUtil().switchToEndScreen(response.body().getData(), true, getString(R.string.win_opponent_not_move));
                                     }
 
                                     @Override
@@ -147,9 +186,27 @@ public class GameScreen extends Fragment implements PrivateChannelEventListener 
         getActivity().runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                if(timer != null) {
+                if (timer != null) {
                     timer.cancel();
                     timer = null;
+                }
+            }
+        });
+    }
+
+    private void stopTimer() {
+        if(timer != null) {
+            timer.cancel();
+        }
+    }
+
+    private void cancelTimerForBot() {
+        getActivity().runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                if (timerForBot != null) {
+                    timerForBot.cancel();
+                    timerForBot = null;
                 }
             }
         });
@@ -162,6 +219,8 @@ public class GameScreen extends Fragment implements PrivateChannelEventListener 
         initializeMoveList(view);
         prepareGame();
         activity = (NumberGameActivity)getActivity();
+        yourNumberText.setText(getString(R.string.your_number));
+        myGuessEditText.setHint(getString(R.string.my_guess));
         return view;
     }
 
@@ -190,7 +249,7 @@ public class GameScreen extends Fragment implements PrivateChannelEventListener 
     {
         Button button = (Button) view;
         String btnStr = button.getText().toString();
-        if (btnStr.equals("GONDER")) {
+        if (btnStr.equals(getString(R.string.send))) {
             clickSend();
         }
         else if (btnStr.equals(getString(R.string.button_backspace))) {
@@ -218,7 +277,8 @@ public class GameScreen extends Fragment implements PrivateChannelEventListener 
                                 public void onResponse(Response<ResponseModel> response, Retrofit retrofit) {
                                     manager.endGame(myNumber, true);
                                     cancelTimer();
-                                    activity.getNavigationUtil().switchToEndScreen(response.body().getData(), false, "Oyundan kendi isteginizle ciktiginiz icin kaybettiniz.");
+                                    cancelTimerForBot();
+                                    activity.getNavigationUtil().switchToEndScreen(isBotGame ? manager.getBotNumber() : response.body().getData(), false, getString(R.string.lose_quit));
                                 }
 
                                 @Override
@@ -230,9 +290,9 @@ public class GameScreen extends Fragment implements PrivateChannelEventListener 
                             manager.cancelGame(deviceId).enqueue(new Callback<ResponseModel>() {
                                 @Override
                                 public void onResponse(Response<ResponseModel> response, Retrofit retrofit) {
-                                    manager.cancelGame(deviceId);
-                                    showToastMessage("Oyununuz iptal edildi. Yeni oyuna baslayabilirsiniz.");
+                                    showToastMessage(getString(R.string.quit_game));
                                     cancelTimer();
+                                    cancelTimerForBot();
                                     activity.getNavigationUtil().switchToHomeScreen(activity.getMatchmakingService());
                                 }
 
@@ -254,8 +314,8 @@ public class GameScreen extends Fragment implements PrivateChannelEventListener 
 
     public void showQuitDialogBox() {
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
-        builder.setMessage("Oyundan cikmak istiyor musunuz ?").setPositiveButton("Evet", dialogQuitListener)
-                .setNegativeButton("Hayir", dialogQuitListener).show();
+        builder.setMessage(getString(R.string.quit_game_question)).setPositiveButton(getString(R.string.yes), dialogQuitListener)
+                .setNegativeButton(getString(R.string.no), dialogQuitListener).show();
 
     }
 
@@ -315,7 +375,7 @@ public class GameScreen extends Fragment implements PrivateChannelEventListener 
             @Override
             public void onClick(View v) {
                 if (!manager.checkNumber(dialogText.getText().toString())) {
-                    showToastMessage("Lutfen kurallara uygun bir sayi seciniz");
+                    showToastMessage(getString(R.string.choose_valid_number));
                     return;
                 }
 
@@ -336,7 +396,7 @@ public class GameScreen extends Fragment implements PrivateChannelEventListener 
     private void createAndShowNumber() {
         chooseNumberDialog = new Dialog(getActivity());
         chooseNumberDialog.setContentView(R.layout.select_number_popup);
-        chooseNumberDialog.setTitle("Lutfen Sayinizi Belirleyin");
+        chooseNumberDialog.setTitle(getString(R.string.choose_number));
         chooseNumberDialog.setCanceledOnTouchOutside(false);
         chooseNumberDialog.setOnKeyListener(new Dialog.OnKeyListener() {
 
@@ -378,23 +438,40 @@ public class GameScreen extends Fragment implements PrivateChannelEventListener 
     private void clickSend(){
         String myGuessSending = myGuessEditText.getText().toString();
         if(!manager.isConnectedOpponent()){
-            showToastMessage("Rakibiniz bekleniyor...");
+            showToastMessage(getString(R.string.opponent_waiting));
             return;
         } else if(!manager.isMineMove()) {
-            showToastMessage("Sira sizde degil. Lutfen bekleyiniz.");
+            showToastMessage(getString(R.string.not_your_turn));
             return;
         } else if(!isConnectionCompleted) {
-            showToastMessage("Baglantiniz henuz tamamlanmadi. Lutfen bekleyiniz.");
+            showToastMessage(getString(R.string.connection_not_yet));
             return;
         } else if(!manager.checkNumber(myGuessSending)) {
-            showToastMessage("Lutfen kurallara uygun bir sayi secin.");
+            showToastMessage(getString(R.string.choose_valid_number));
+            return;
+        } else if(isSendAlready(myGuessSending)) {
+            showToastMessage(getString(R.string.already_send));
             return;
         }
 
         myGuessEditText.setText("");
-        addMove(myGuessSending);
+
+        if(isBotGame) {
+            addMoveForBot(myGuessSending);
+        } else {
+            addMove(myGuessSending);
+        }
     }
 
+    private boolean isSendAlready(String guessNumber){
+        for (int i = 0; i < moveList.size(); i++) {
+            if(moveList.get(i).contains(guessNumber)){
+                return true;
+            }
+        }
+
+        return false;
+    }
     private void addMove(final String myGuess) {
         startLoadingWidget();
         manager.sendMyGuessToOpponent(myGuess);
@@ -406,12 +483,12 @@ public class GameScreen extends Fragment implements PrivateChannelEventListener 
                 if (response.body().getData().split(",")[0].equals("finished")) {
                     manager.endGame(myNumber, false);
                     cancelTimer();
-                    activity.getNavigationUtil().switchToEndScreen(response.body().getData().split(",")[1], true, "Sayiyi Bildiniz !");
+                    activity.getNavigationUtil().switchToEndScreen(response.body().getData().split(",")[1], true, getString(R.string.correct_number));
                 } else {
                     setMove(false);
                     manager.nextMove();
                     String[] myMoveResult = response.body().getData().split(",");
-                    String myMove = "Tahmin : " + myGuess + " Cevap : +" + myMoveResult[0] + " ______ " + " -" + myMoveResult[1];
+                    String myMove = getString(R.string.guess) + myGuess + "   " + getString(R.string.answer) + "   +" + myMoveResult[0] + " ______ " + " -" + myMoveResult[1];
                     updateList(myMove);
                 }
             }
@@ -420,10 +497,24 @@ public class GameScreen extends Fragment implements PrivateChannelEventListener 
             public void onFailure(Throwable t) {
                 stopLoadingWidget();
                 setMove(true);
-                showToastMessage("Islem gerceklesmedi. Lutfen tekrar deneyiniz.");
+                showToastMessage(getString(R.string.move_fail));
             }
         });
         startTimer(NEXT_MOVE_TIME);
+    }
+
+    private void addMoveForBot(final String myGuess) {
+        setMove(false);
+        stopTimer();
+        String[] myMoveResult = manager.getAnswerForBot(myGuess).split(",");
+        if(myMoveResult[0].equals("4")) {
+            activity.getNavigationUtil().switchToEndScreen(manager.getBotNumber(), true, null);
+        } else {
+            String myMove = getString(R.string.guess) + myGuess + "   " + getString(R.string.answer) + "   +" + myMoveResult[0] + " ______ " + " -" + myMoveResult[1];
+            updateList(myMove);
+
+            startTimerForBot(BOT_MOVE_TIME);
+        }
     }
 
     private void setMove(boolean isMyMove) {
@@ -447,23 +538,25 @@ public class GameScreen extends Fragment implements PrivateChannelEventListener 
                 @Override
                 public void onResponse(Response<ResponseModel> response, Retrofit retrofit) {
                     if (response.body().getData() == null) {
-                        showToastMessage("Sayi gonderilemedi. Tekrar deneyin.");
+                        showToastMessage(getString(R.string.number_fail));
                         chooseNumberDialog.show();
                     } else if (response.body().getData().equals("Start")) {
+                        cancelTimerForBot();
                         startTimer(NEXT_MOVE_TIME);
                         manager.setIsConnectedOpponent(true);
                         setMove(false);
-                        showToastMessage("Oyun basladi. Sira karsi oyuncuda.");
+                        showToastMessage(getString(R.string.game_start_opponent));
                         manager.startGame();
                     } else if (response.body().getData().equals("Ok")) {
-                        showToastMessage("Sayiniz gonderildi. Karsidaki oyuncunun katilmasi bekleniyor.");
+                        startTimerForBot(BOT_JOIN_TIME);
+                        showToastMessage(getString(R.string.game_waiting_opponent));
                     }
                     stopLoadingWidget();
                 }
 
                 @Override
                 public void onFailure(Throwable t) {
-                    showToastMessage("Sayi gonderilemedi. Tekrar deneyin.");
+                    showToastMessage(getString(R.string.number_fail));
                     stopLoadingWidget();
                     if(myNumber.length() == 0) {
                         chooseNumberDialog.show();
@@ -475,6 +568,39 @@ public class GameScreen extends Fragment implements PrivateChannelEventListener 
             stopLoadingWidget();
             manager.reconnect();
         }
+    }
+
+    private void prepareGameForBot() {
+        isBotGame = true;
+        manager.setIsConnectedOpponent(true);
+        manager.generateBotNumber(myNumber);
+        setMove(true);
+        showToastMessage(getString(R.string.game_start_mine));
+        startTimer(MY_MOVE_TIME);
+        manager.addBotGame(deviceId, myNumber).enqueue(new Callback() {
+            @Override
+            public void onResponse(Response response, Retrofit retrofit) {
+
+            }
+
+            @Override
+            public void onFailure(Throwable t) {
+
+            }
+        });
+
+
+        manager.cancelGame(deviceId).enqueue(new Callback<ResponseModel>() {
+            @Override
+            public void onResponse(Response<ResponseModel> response, Retrofit retrofit) {
+
+            }
+
+            @Override
+            public void onFailure(Throwable t) {
+
+            }
+        });
     }
 
     private void stopLoadingWidget() {
@@ -503,22 +629,24 @@ public class GameScreen extends Fragment implements PrivateChannelEventListener 
             event = new JSONObject(s2);
 
             if(event.has("startGame") && event.getString("startGame").equals("start")){
+                cancelTimerForBot();
                 manager.setIsConnectedOpponent(true);
                 setMove(true);
-                showToastMessage("Sira sizde. Simdi baslayabilirsiniz.");
+                showToastMessage(getString(R.string.game_start_mine));
                 startTimer(MY_MOVE_TIME);
             } else if(event.has("nextMove") && event.getString("nextMove").equals("move")){
                 startTimer(MY_MOVE_TIME);
-                showToastMessage("Sira sizde. Lutfen hamlenizi yapin.");
+                showToastMessage(getString(R.string.your_move));
                 setMove(true);
             } else if(event.has("endGame") && event.getString("endGame").equals("end")){
                 manager.unsubscribeChannel();
                 cancelTimer();
                 activity.getNavigationUtil().switchToEndScreen(event.getString("opponentNumber"), event.getBoolean("isWin"), null);
             } else if(event.has("opponentConnected")) {
-                showToastMessage("Rakibiniz baglandi.");
+                cancelTimerForBot();
+                showToastMessage(getString(R.string.opponent_connected));
             } else if(event.has("guessNumber")) {
-                showToastMessage("Rakibinizin hamlesi : " + event.getString("guessNumber"));
+                showToastMessage(getString(R.string.opponent_guess) + event.getString("guessNumber"));
             }
         } catch (JSONException e) {
             e.printStackTrace();
@@ -539,7 +667,7 @@ public class GameScreen extends Fragment implements PrivateChannelEventListener 
 
     public void updateList(String[] myMoves, String[] myMovesResults) {
         for (int i = 1; i < myMoves.length; i++) {
-            String myMove = "Tahmin : " + myMoves[i] + " Cevap : +" + myMovesResults[(i*2) - 1] + " ______ " + " -" + myMovesResults[i*2];
+            String myMove = getString(R.string.guess) + myMoves[i] + "   " + getString(R.string.answer) + "   +" + myMovesResults[(i*2) - 1] + " ______ " + " -" + myMovesResults[i*2];
             moveList.add(myMove);
         }
 
