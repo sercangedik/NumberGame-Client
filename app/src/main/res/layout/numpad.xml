@@ -123,6 +123,6 @@
             android:layout_weight="1"
             style="@style/ConverterButton"
             android:textSize="12sp"
-            android:text="GONDER"/>
+            android:text="SEND"/>
     </TableRow>
 </TableLayout>

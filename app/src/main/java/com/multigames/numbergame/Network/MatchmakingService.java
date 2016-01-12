@@ -27,5 +27,6 @@ public interface MatchmakingService {
     @GET("gateway.php")
     Call<ResponseGameModel> newGame(@Query("action") String newGame, @Query("player_id") String playerId);
 
-
+    @GET("gateway.php")
+    Call<ResponseGameModel> addBotGame(@Query("action")String addBotGame,  @Query("player_id") String deviceId,  @Query("player_number") String myNumber);
 }
